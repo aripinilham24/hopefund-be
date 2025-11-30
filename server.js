@@ -8,6 +8,11 @@ import authRoutes from "./routes/authRoutes.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
+const url = "http://localhost:5173";
+if(process.env.MODE === "PRODUCTION") {
+  url = process.env.URL_FE;
+}
+
 dotenv.config();
 const app = express();
 const __filename = fileURLToPath(import.meta.url);

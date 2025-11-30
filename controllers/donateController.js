@@ -13,6 +13,10 @@ export const getConfig = async (req, res) => {
 
 export const createSnapTransaction = async (req, res) => {
     try {
+        const url = "http://localhost:5173";
+        if(process.env.MODE === "PRODUCTION") {
+          url = process.env.URL_FE;
+        }
         const { donateId, amount, message, customer, campaignId } = req.body;
 
         if (!donateId || !amount || !customer?.name || !customer?.email) {
@@ -34,9 +38,9 @@ export const createSnapTransaction = async (req, res) => {
             },
 
             callbacks: {
-                finish: `http://localhost:5173/detailcampaign/${campaignId}`,
-                unfinish: `http://localhost:5173/detailcampaign/${campaignId}`,
-                error: `http://localhost:5173/detailcampaign/${campaignId}`,
+                finish: `${url}/detailcampaign/${campaignId}`,
+                unfinish: `${url}/detailcampaign/${campaignId}`,
+                error: `${url}/detailcampaign/${campaignId}`,
             },
         };
 
