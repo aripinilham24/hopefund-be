@@ -16,7 +16,7 @@ export const getConfig = async (req, res) => {
 
 export const createSnapTransaction = async (req, res) => {
     try {
-        const url = "http://localhost:5173";
+        let url = "http://localhost:5173";
         if(process.env.MODE === "PRODUCTION") {
           url = process.env.URL_FE;
         }
