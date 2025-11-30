@@ -1,5 +1,8 @@
 import snap from "../config/midtrans.js";
 import Transaction from "../models/Transaction.js";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 export const getConfig = async (req, res) => {
     try {

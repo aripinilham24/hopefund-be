@@ -8,12 +8,13 @@ import authRoutes from "./routes/authRoutes.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
-const url = "http://localhost:5173";
+dotenv.config();
+
+let url = "http://localhost:5173";
 if(process.env.MODE === "PRODUCTION") {
   url = process.env.URL_FE;
 }
 
-dotenv.config();
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,7 +25,7 @@ app.use(
 );
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://hopefund-donasi-online.vercel.app"],
+    origin: url,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
