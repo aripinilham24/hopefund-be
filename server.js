@@ -23,6 +23,7 @@ app.use(
   "/uploads/image/",
   express.static(path.join(__dirname, "./uploads/image/"))
 );
+
 app.use(
   cors({
     origin: url,

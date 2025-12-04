@@ -52,11 +52,42 @@ export const getCampaignById = async (req, res) => {
 // Create new campaign
 export const createCampaign = async (req, res) => {
   try {
-    const newCampaign = new Campaign(req.body);
-    const saved = await newCampaign.save();
-    res.status(201).json({ success: true, data: saved });
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "Foto campaign wajib diupload",
+      });
+    }
+
+    const { title, description, details, deadline, targetAmount, category } =
+      req.body;
+
+    await Campaign.create({
+      title,
+      shortDescription: description,
+      description: details,
+      deadline,
+      image: req.file.filename,
+      targetAmount,
+      category,
+    });
+    res.status(201).json({
+      success: true,
+      message: "Campaign created successfully",
+      data: {
+        status: "success",
+        message: " Campaign berhasil dibuat",
+      },
+    });
   } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
+    res.status(400).json({
+      success: false,
+      message: err.message,
+      data: {
+        status: "error",
+        message: " Terjadi kesalahan server",
+      },
+    });
   }
 };
 

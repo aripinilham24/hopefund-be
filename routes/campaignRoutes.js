@@ -5,16 +5,17 @@ import {
   getTitleCampaignsById,
   createCampaign,
   updateCampaign,
-  deleteCampaign
+  deleteCampaign,
 } from "../controllers/campaignController.js";
+import { uploadCampaign } from "../middlewares/storage.js";
 
 const router = express.Router();
 
-router.get("/", getCampaigns);          // GET all
+router.get("/", getCampaigns); // GET all
 router.get("/title/:id", getTitleCampaignsById); // GET title campaign by id
-router.get("/:id", getCampaignById);    // GET one
-router.post("/", createCampaign);       // POST new
-router.put("/:id", updateCampaign);     // PUT update
-router.delete("/:id", deleteCampaign);  // DELETE
+router.get("/:id", getCampaignById); // GET one
+router.post("/create", uploadCampaign.single("image"), createCampaign); // POST new
+router.put("/:id", updateCampaign); // PUT update
+router.delete("/:id", deleteCampaign); // DELETE
 
 export default router;
