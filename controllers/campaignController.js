@@ -1,5 +1,7 @@
 import Campaign from "../models/Campaign.js";
 import Transaction from "../models/Transaction.js";
+import fs from "fs";
+import path from "path";
 
 // Get all campaigns
 export const getCampaigns = async (req, res) => {
@@ -49,6 +51,16 @@ export const getCampaignById = async (req, res) => {
   }
 };
 
+//get campaigns by creatorId
+export const getCampaignsByCreatorId = async (req, res) => {
+  try {
+    const { creatorId } = req.params;
+    const campaigns = await Campaign.find({ creatorId });
+    res.json({ success: true, data: campaigns });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
 // Create new campaign
 export const createCampaign = async (req, res) => {
   try {
@@ -59,17 +71,25 @@ export const createCampaign = async (req, res) => {
       });
     }
 
-    const { title, description, details, deadline, targetAmount, category } =
-      req.body;
+    const {
+      title,
+      description,
+      details,
+      deadline,
+      targetAmount,
+      category,
+      creatorId,
+    } = req.body;
 
     await Campaign.create({
+      creatorId,
       title,
       shortDescription: description,
       description: details,
-      deadline,
-      image: req.file.filename,
       targetAmount,
       category,
+      image: req.file.filename,
+      deadline,
     });
     res.status(201).json({
       success: true,
@@ -94,31 +114,113 @@ export const createCampaign = async (req, res) => {
 // Update campaign
 export const updateCampaign = async (req, res) => {
   try {
-    const updated = await Campaign.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
-    if (!updated) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Campaign not found" });
+    const {
+      title,
+      description,
+      details,
+      deadline,
+      targetAmount,
+      category,
+      creatorId,
+    } = req.body;
+
+    // 1. Ambil data campaign lama
+    const oldCampaign = await Campaign.findById(req.params.id);
+    if (!oldCampaign) {
+      return res.status(404).json({
+        success: false,
+        message: "Campaign not found",
+      });
     }
-    res.json({ success: true, data: updated });
+
+    let newImage = oldCampaign.image; // default pakai gambar lama
+
+    // 2. Jika ada file baru → update image + hapus file lama
+    if (req.file) {
+      newImage = req.file.filename;
+
+      // path file lama
+      const oldImagePath = path.join(
+        "uploads",
+        "image",
+        "campaign",
+        oldCampaign.image
+      );
+
+      // cek file lalu hapus
+      if (fs.existsSync(oldImagePath)) {
+        fs.unlinkSync(oldImagePath);
+      }
+    }
+
+    // 3. Update DB
+    await Campaign.findByIdAndUpdate(req.params.id, {
+      creatorId,
+      title,
+      shortDescription: description,
+      description: details,
+      targetAmount,
+      category,
+      deadline,
+      image: newImage,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Campaign updated successfully",
+      data: {
+        status: "success",
+        message: "Campaign berhasil diupdate",
+      },
+    });
+
   } catch (err) {
-    res.status(400).json({ success: false, message: err.message });
+    console.error("Update error:", err);
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
   }
 };
+
 
 // Delete campaign
 export const deleteCampaign = async (req, res) => {
   try {
-    const deleted = await Campaign.findByIdAndDelete(req.params.id);
-    if (!deleted) {
+    // 1. Cari campaign dulu sebelum dihapus
+    const campaign = await Campaign.findById(req.params.id);
+
+    if (!campaign) {
       return res
         .status(404)
         .json({ success: false, message: "Campaign not found" });
     }
-    res.json({ success: true, message: "Campaign deleted successfully" });
+
+    // 2. Simpan nama file gambar
+    const imageName = campaign.image;
+
+    // 3. Hapus dari database
+    await Campaign.findByIdAndDelete(req.params.id);
+
+    // 4. Hapus file fisik gambar
+    if (imageName) {
+      const filePath = path.join("uploads", "image", "campaign", imageName);
+
+      // cek apakah file ada
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath); // hapus file
+      }
+    }
+
+    return res.json({
+      success: true,
+      message: "Campaign deleted successfully",
+    });
+
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    console.error("Error deleting campaign:", err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Server error: " + err.message });
   }
 };

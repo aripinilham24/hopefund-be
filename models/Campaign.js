@@ -2,6 +2,7 @@
 import mongoose from "mongoose";
 
 const campaignSchema = new mongoose.Schema({
+  creatorId: { type: String, required: true, trim: true },
   title: { type: String, required: true, trim: true },
   shortDescription: { type: String, trim: true },
   description: { type: String },
